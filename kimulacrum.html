@@ -80,6 +80,10 @@
 		</tr>
 	</table>
 
+	<!-- Eventually make these available to user to edit? -->
+	<input id="chemistry" type="hidden" value="0"/>
+	<input id="chats" type="hidden" value=""/>
+
 	<div id="history"></div>
 	<div id="choices"></div>
 </body>
@@ -186,6 +190,7 @@
 		{
 			const span = document.createElement("span");
 			span.textContent += " (+" + chemistry + " Chemistry)";
+			document.getElementById("chemistry").value = +document.getElementById("chemistry").value + +chemistry;
 			div.appendChild(span);
 		}
 		document.getElementById("history").appendChild(div);
@@ -266,24 +271,39 @@
 			if (node.name)
 			{
 				addToHistory("System", "Chat finished. The next chat after this would be " + node.name + ".");
+				enforced_next = node.name;
 			}
 			else
 			{
 				addToHistory("System", "Chat finished.");
 			}
+		    bounty_available = true;
 		}
 		else if (node.type == "/EE/Types/Engine/CheckBooleanDialogueNode")
 		{
-			document.getElementById("choices").innerHTML = "";
-			presentChoice("$ Boolean " + node.name + " is true", function()
-			{
-				processChoices(node.true_choices);
-			});
-			presentChoice("$ Boolean " + node.name + " is false", function()
-			{
-				processChoices(node.false_choices);
-			});
-			endChoices();
+		    var flag_value = getFlag( node.name );
+//		    if ( flag_value == undefined )
+//		    {
+//			document.getElementById("choices").innerHTML = "";
+//			presentChoice("$ Boolean " + node.name + " is true", function()
+//			{
+//				processChoices(node.true_choices);
+//			});
+//			presentChoice("$ Boolean " + node.name + " is false", function()
+//			{
+//				processChoices(node.false_choices);
+//			});
+//			endChoices();
+//		    }
+//		    else
+		    if ( flag_value )
+		    {
+			processChoices(node.true_choices);			
+		    }
+		    else
+		    {
+			processChoices(node.false_choices);			
+		    }
 			return;
 		}
 		else if (node.type == "/EE/Types/Engine/CheckBooleanScriptDialogueNode")
@@ -302,10 +322,12 @@
 		}
 		else if (node.type == "/EE/Types/Engine/SetBooleanDialogueNode")
 		{
+		    setFlag( node.name, true );
 			addToHistory("System", "Boolean " + node.name + " is now true.");
 		}
 		else if (node.type == "/EE/Types/Engine/ResetBooleanDialogueNode")
 		{
+		    setFlag( node.name, false );
 			addToHistory("System", "Boolean " + node.name + " is now false.");
 		}
 		else if (node.type == "/EE/Types/Engine/SpecialCompletionDialogueNode")
@@ -334,7 +356,7 @@
 		{
 			processNode(nodes[choices[0]], chemistry);
 		}
-		else
+	    else if ( choices.length > 0 )
 		{
 			choices.forEach(choiceNodeId => {
 				const choiceNode = nodes[choiceNodeId];
@@ -345,6 +367,13 @@
 			});
 			endChoices();
 		}
+	    else
+	    {
+		document.getElementById("chats").value = [ document.getElementById("chats").value,
+							   window.dialogue ].filter(Boolean).join(",");			
+		saveState();
+		presentAvailableConvos();
+	    }
 	}
 
 	function saveState()
@@ -361,6 +390,15 @@
 					hash += "&choices=" + window.choice_history.join(",");
 				}
 			}
+			hash += "&chemistry=" + document.getElementById("chemistry").value;
+			hash += "&chats=" + document.getElementById("chats").value;
+		    if (window.flags)
+		    {
+			for( const flag of flags )
+			{
+			    hash += "&" + flag.key + "=" + flag.value;
+			}
+		    }
 		}
 		if (lang != "en")
 		{
@@ -377,7 +415,8 @@
 			window.sender_name = document.querySelector("option[value='"+chatroom+"']").textContent.split(" (")[0];
 
 			window.nodes = window.chatrooms[chatroom];
-
+			window.real_name = chatroom.replace("Dialogue_rom.dialogue","");
+      
 			window.dialogue_name_to_start_node_id = {};
 			for (const node of nodes)
 			{
@@ -422,6 +461,212 @@
 	{
 		window.replay_choices = window.choice_history;
 		setActiveDialogue(window.dialogue);
+	}
+
+	function computeRank()
+	{
+	    var rank = 1;
+	    var chemistry = +document.getElementById("chemistry").value; 
+	    var nchats = 0;
+	    if ( document.getElementById("chats").value.length > 0 )
+	    {
+		nchats = document.getElementById("chats").value.split(",").length;
+	    }
+	    var final_convo = document.getElementById("chats").value.indexOf(real_name + "Rank6Convo1") >= 0;
+	    var is_dating = getFlag( "IsDating" );
+	    var dating_sender = getFlag( real_name + "Dating" );	
+	    var landmine_stepped = getFlag( real_name + "NoDate" );
+	    if ( ( chemistry >= 360 ) && ( nchats >= 13 ) && final_convo && is_dating &&
+		 dating_sender && ! landmine_stepped )
+	    {
+		rank = 7;
+	    }
+	    else if ( ( chemistry >= 360 ) && ( nchats >= 13 ) )
+	    {
+		rank = 6;
+	    }
+	    else if ( ( chemistry >= 240 ) && ( nchats >= 10 ) )
+	    {
+		rank = 5;
+	    }
+	    else if ( ( chemistry >= 160 ) && ( nchats >= 7 ) )
+	    {
+		rank = 4;
+	    }
+	    else if ( ( chemistry >= 90 ) && ( nchats >= 4 ) )
+	    {
+		rank = 3;
+	    }
+	    else if ( ( chemistry >= 40 ) && ( nchats >= 2 ) )
+	    {
+		rank = 2;
+	    }
+	    return rank;
+	}
+
+	function setFlag( key, value )
+	{
+	    if ( ! window.flags )
+	    {
+		window.flags = [];
+	    }
+	    var index = -1;
+	    var i = 0;
+	    for( const flag of flags )
+	    {
+		if( flag.key == key )
+		{
+		    index = i;
+		}
+		i++;
+	    }
+	    if ( index < 0 )
+	    {
+		flags.push( { key, value } );
+	    }
+	    else
+	    {
+		flags[index].value = value;
+	    }
+	}
+
+	function getFlag( key )
+	{
+	    if ( window.flags == undefined )
+	    {
+		return undefined;
+	    }
+	    var value = undefined;
+	    for( const flag of flags )
+	    {
+		if( flag.key == key )
+		{
+		    value = flag.value;
+		}
+	    }
+	    return value;
+	}
+
+	function presentAvailableConvos()
+	{
+	    const params = new URLSearchParams(location.hash.toString().replace("#", ""));
+	    if( ! params.has("chatroom") )
+	    {
+		return;
+	    }
+	    var rank = computeRank();
+	    var convos_starts_with = real_name + "Rank" + rank;
+	    var previous_chats = [];
+	    if ( params.has("chats") )
+	    {
+		previous_chats = params.get("chats").split(',');
+	    }
+	    document.getElementById("choices").innerHTML = "";
+	    var status_message = "";
+	    switch(rank) {
+	    case 2:
+		status_message = real_name + " is currently friendly toward you";
+		break;
+	    case 3:
+		status_message = "You are currently liked by " + real_name;
+		break;
+	    case 4:
+		status_message = "You are currently trusted by " + real_name;
+		break;
+	    case 5:
+		status_message = real_name + " is currently close to you";
+		break;
+	    case 6:
+		status_message = "You are currently best friends with " + real_name;
+		break;
+	    case 7:
+		status_message = "You are currently loved by " + real_name;
+		break;
+	    default:
+		status_message = real_name + " is currently neutral toward you";
+	    } 
+	    addToHistory("System", status_message);
+
+	    var nconvos = 0;
+	    if ( ! enforced_next )
+	    {
+		for (const node of nodes)
+		{
+		    // Create choices of all available remaining conversations at current rank using first line as choice text
+		    if ( (node.type == "/EE/Types/Engine/StartDialogueNode") &&
+			 ( node.name.startsWith(convos_starts_with) ) &&
+			 ! previous_chats.includes(node.name) )
+		    {
+			var dialogue_text = "(Unknown)";
+			if ( node.choices.length > 1 )
+			{
+			    dialogue_text = "(Multiple " + document.getElementById("username").value || "Drifter";
+			    dialogue_text += " initiated topics)";
+			}
+			else
+			{
+			    dialogue_text = getNodeText(nodes[node.choices[0]]);
+			}
+			presentChoice( dialogue_text, function()
+				       {
+					   window.dialogue = node.name;
+					   clearChat();
+					   saveState();
+					   processNode(node);
+				       });
+			nconvos++;
+		    }
+		}
+	    }
+	    else
+	    {
+		for (const node of nodes)
+		{
+		    // Create choices of all available remaining conversations at current rank using first line as choice text
+		    if ( (node.type == "/EE/Types/Engine/StartDialogueNode") &&
+			 ( node.name == enforced_next ) )
+		    {
+			var dialogue_text = "(Unknown)";
+			if ( node.choices.length > 1 )
+			{
+			    dialogue_text = "(Multiple " + document.getElementById("username").value || "Drifter";
+			    dialogue_text += " initiated topics)";
+			}
+			else
+			{
+			    dialogue_text = getNodeText(nodes[node.choices[0]]);
+			}
+			presentChoice( dialogue_text, function()
+				       {
+					   window.dialogue = node.name;
+					   clearChat();
+					   saveState();
+					   processNode(node);
+					   enforced_next = undefined;
+				       });
+			nconvos++;
+		    }
+		}
+	    }
+	    if ( bounty_available || ( nconvos == 0 ) )
+	    {
+		// present option to do a bounty ( add 20 chemistry? ) and retry
+		presentChoice("Do a bounty with " + real_name, function()
+			      {
+				  bounty_available = false;
+				  document.getElementById("chemistry").value = +document.getElementById("chemistry").value + 20;
+				  clearChat();
+				  saveState();
+				  presentAvailableConvos();
+			      });
+ 		var chemistry = +document.getElementById("chemistry").value; 
+		var nchats = 0;
+		if ( document.getElementById("chats").value.length > 0 )
+		{
+		    nchats = document.getElementById("chats").value.split(",").length;
+		}
+	    }
+	    endChoices();
 	}
 
 	addToHistory("System", "Loading data...");
@@ -488,6 +733,11 @@
 
 			window.chatroom = undefined;
 			window.dialogue = undefined;
+			window.bounty_available = true;
+			window.enforced_next = undefined;
+			document.getElementById("chemistry").value = 0;
+			document.getElementById("chats").value = "";
+			window.flags = [];
 			if (this.value != "SELECT A CHATROOM")
 			{
 				setActiveChatroom(this.value);
@@ -528,8 +778,15 @@
 						need_recreate = false;
 					}
 				}
+			    else
+			    {
+				// insert all possible dialogs
+				presentAvailableConvos();
+			    }
+
 			}
-			if (need_recreate)
+
+		    if (need_recreate)
 			{
 				recreateChat();
 			}
