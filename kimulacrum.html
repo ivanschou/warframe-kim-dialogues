@@ -41,7 +41,7 @@
 					<option value="ArthurDialogue_rom.dialogue">Broadsword (Arthur)</option>
 					<option value="EleanorDialogue_rom.dialogue">Salem (Eleanor)</option>
 					<option value="LettieDialogue_rom.dialogue">Belladona ~{@ (Lettie)</option>
-					<option value="JabirDialogue_rom.dialogue">H16h V0l7463 (Amir)</option>
+					<option value="AmirDialogue_rom.dialogue">H16h V0l7463 (Amir)</option>
 					<option value="AoiDialogue_rom.dialogue">xX GLIMMER Xx (Aoi)</option>
 					<option value="QuincyDialogue_rom.dialogue">Soldja1Shot1kil (Quincy)</option>
 					<option value="HexDialogue_rom.dialogue">The Hex</option>
@@ -689,13 +689,13 @@
 		fetch("ArthurDialogue_rom.dialogue.json").then(res => res.json()),
 		fetch("EleanorDialogue_rom.dialogue.json").then(res => res.json()),
 		fetch("LettieDialogue_rom.dialogue.json").then(res => res.json()),
-		fetch("JabirDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("AmirDialogue_rom.dialogue.json").then(res => res.json()),
 		fetch("AoiDialogue_rom.dialogue.json").then(res => res.json()),
 		fetch("QuincyDialogue_rom.dialogue.json").then(res => res.json()),
 		fetch("HexDialogue_rom.dialogue.json").then(res => res.json())
 	]).then(([
 		dict_en, dict_de, dict_es, dict_fr, dict_it, dict_ja, dict_ko, dict_pl, dict_pt, dict_ru, dict_tc, dict_th, dict_tr, dict_uk, dict_zh,
-		ArthurDialogue_rom, EleanorDialogue_rom, LettieDialogue_rom, JabirDialogue_rom, AoiDialogue_rom, QuincyDialogue_rom, HexDialogue_rom
+		ArthurDialogue_rom, EleanorDialogue_rom, LettieDialogue_rom, AmirDialogue_rom, AoiDialogue_rom, QuincyDialogue_rom, HexDialogue_rom
 	]) => {
 		window.dicts = {
 			en: dict_en,
@@ -718,7 +718,7 @@
 			"ArthurDialogue_rom.dialogue": ArthurDialogue_rom,
 			"EleanorDialogue_rom.dialogue": EleanorDialogue_rom,
 			"LettieDialogue_rom.dialogue": LettieDialogue_rom,
-			"JabirDialogue_rom.dialogue": JabirDialogue_rom,
+			"AmirDialogue_rom.dialogue": AmirDialogue_rom,
 			"AoiDialogue_rom.dialogue": AoiDialogue_rom,
 			"QuincyDialogue_rom.dialogue": QuincyDialogue_rom,
 			"HexDialogue_rom.dialogue": HexDialogue_rom,
