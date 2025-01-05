@@ -7,6 +7,22 @@
 		#history, #choices {
 			margin-top: 20px;
 		}
+
+		.chat-message {
+			margin: 10px 0;
+		}
+
+		.chat-message-author, .chat-message-line {
+			display: block;
+		}
+
+		.choice {
+			background: rgb(1, 1, 1, 0.1);
+			margin: 7px 0;
+			padding: 5px;
+			cursor: pointer;
+		}
+
 	</style>
 </head>
 <body>
@@ -122,12 +138,46 @@
 		return text;
 	}
 
-	function addToHistory(text)
+	function addToHistory(author, text, chemistry)
 	{
 		const div = document.createElement("div");
+		div.className = "chat-message";
 		{
 			const span = document.createElement("span");
+			span.classList.add("chat-message-author");
+			if (author == "Drifter")
+			{
+				span.classList.add("chat-message-author-self");
+				span.textContent = author;
+				span.style.color = "red";
+			}
+			else if (author == "System")
+			{
+				span.textContent = author;
+				span.style.color = "orange";
+			}
+			else if (author == "Unknown")
+			{
+				span.textContent = "";
+				span.style.color = "grey";
+			}
+			else
+			{
+				span.textContent = author;
+				span.style.color = "blue";
+			}
+			div.appendChild(span);
+		}
+		{
+			const span = document.createElement(chemistry ? "b" : "span");
 			span.innerHTML = resolveEmojis(text.trim() == "" ? "&#8203;" : text).split("\r\n").join("<br/>");
+			div.appendChild(span);
+		}
+		if (chemistry)
+		{
+			const span = document.createElement("span");
+			span.textContent += " (+" + chemistry + " Chemistry)";
+			document.getElementById("chemistry").value = +document.getElementById("chemistry").value + +chemistry;
 			div.appendChild(span);
 		}
 		document.getElementById("history").appendChild(div);
@@ -187,6 +237,30 @@
 	    }
 	    return refs;
 
+	}
+
+	function getAllFlags( root, refs )
+	{
+
+	    var full_refs = refs;
+	    full_refs.unshift( root );
+	    var flags = Array();
+	    for( i=full_refs.length-1; i>0; i-- )
+	    {
+		console.log(nodes[full_refs[i]].type + " => " + full_refs[i] );
+		if ( ( nodes[full_refs[i]].type == "/EE/Types/Engine/CheckBooleanDialogueNode" ) &&
+		     nodes[full_refs[i]].true_choices.includes( full_refs[i-1] ) )
+		{
+		    flags.push( { flag:nodes[full_refs[i]].name, value:true } );
+		}
+		if ( ( nodes[full_refs[i]].type == "/EE/Types/Engine/CheckBooleanDialogueNode" ) &&
+		     nodes[full_refs[i]].false_choices.includes( full_refs[i-1] ) )
+		{
+		    flags.push( { flag:nodes[full_refs[i]].name, value:false } );
+		}
+	    }
+	    return flags;
+	    
 	}
 
 	function traceBack( id )
@@ -251,24 +325,34 @@
 	{
 
 	    no_date = findNoDate();
-	    addToHistory( real_name + " has " + no_date.length.toString() + " land mines" );
-	    addToHistory("");
+	    addToHistory( "System", real_name + " has " + no_date.length.toString() + " land mines" );
+	    addToHistory( "Unknown", "" );
 	    for ( const item_id of no_date )
 	    {
 		refs = findAllRefs( item_id );
 		for ( const refs_id of refs )
-		{	
+		{
+		    // addToHistory( "Unknown", item_id.toString() + "," + refs_id.toString() );
+		    flags = getAllFlags( item_id, refs_id );
+		    flag_text = "";
+		    for( const flag of flags )
+		    {
+			flag_text += ", " + flag.flag + " is " + flag.value;
+		    }
+		    if ( flag_text.length > 0 )
+		    {
+			addToHistory( "System", flag_text.slice(2) );
+		    }
 		    for( j=refs_id.length-1; j>=0; j-- )
 		    {
 			if ( ( nodes[refs_id[j]].type == "/EE/Types/Engine/DialogueNode" ) ||
 			     ( nodes[refs_id[j]].type == "/EE/Types/Engine/PlayerChoiceDialogueNode" ) )
 			{
-			    addToHistory( speaker(nodes[refs_id[j]]) + ": " +
-					  getNodeText(nodes[refs_id[j]]) );
+			    addToHistory( speaker(nodes[refs_id[j]]), getNodeText(nodes[refs_id[j]]) );
 			}
 
 		    }
-		    addToHistory( "" );
+		    addToHistory( "Unknown", "" );
 		}
 	    }
 
@@ -316,7 +400,7 @@
 		}
 	}
 
-	addToHistory("Loading data...");
+	addToHistory( "System", "Loading data...");
 	Promise.all([
 		fetch("dicts/en.json").then(res => res.json()),
 		fetch("dicts/de.json").then(res => res.json()),
