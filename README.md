@@ -2,8 +2,9 @@
 
 All Kinemantik Instant Messaging conversations and various ways to explore them.
 
-- [Convo Locator](https://kim.browse.wf/convo-locator) — find a conversation based on (part of) a message
-- [Kimulacrum](https://kim.browse.wf/kimulacrum) — web-based reimplementation of the KIM chat allowing you to take all conversations and paths.
+- [Kimulacrum](https://kim.browse.wf/kimulacrum.html) — web-based reimplementation of the KIM chat allowing you to take all conversations and paths. This fork allows the user play through of KIM chats as if in-game. （Does not currently hand state variables across Hex members.)
+- [Minesweeper](https://kim.browse.wf/minesweeper.html) — Generates segments of chat conversations with the Drifter response that will result in failed romance with the selected Hex member.
+- [Convo Locator](https://kim.browse.wf/convo-locator.html) — find a conversation based on (part of) a message
 - [Flowcharts](flowcharts)
 
 ## Stockfish
