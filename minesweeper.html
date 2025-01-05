@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>KIM Minesweeper</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		#history, #choices {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<table style="width:100%;text-align:center;">
+		<tr>
+			<td>
+				<select id="chatroom">
+					<option>SELECT A CHATROOM</option>
+					<option value="ArthurDialogue_rom.dialogue">Broadsword (Arthur)</option>
+					<option value="EleanorDialogue_rom.dialogue">Salem (Eleanor)</option>
+					<option value="LettieDialogue_rom.dialogue">Belladona ~{@ (Lettie)</option>
+					<option value="AmirDialogue_rom.dialogue">H16h V0l7463 (Amir)</option>
+					<option value="AoiDialogue_rom.dialogue">xX GLIMMER Xx (Aoi)</option>
+					<option value="QuincyDialogue_rom.dialogue">Soldja1Shot1kil (Quincy)</option>
+					<option value="HexDialogue_rom.dialogue">The Hex</option>
+				</select>
+				<select id="lang">
+					<option value="en">English</option>
+					<option value="de">Deutsch</option>
+					<option value="es">Español</option>
+					<option value="fr">Français</option>
+					<option value="it">Italiano</option>
+					<option value="ja">日本語</option>
+					<option value="ko">한국어</option>
+					<option value="pl">Polski</option>
+					<option value="pt">Português</option>
+					<option value="ru">Русский</option>
+					<option value="tr">Türkçe</option>
+					<option value="uk">Українська</option>
+					<option value="zh">简体中文</option>
+					<option value="tc">繁體中文</option>
+					<option value="th">แบบไทย</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+
+	<div id="history"></div>
+
+</body>
+<script>
+	let lang = "en";
+
+	const retro_emoji_paths = [
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiAnnoyed1_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiAnnoyed2_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiAoiCat_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiAwHug_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiCat_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiCheeky_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiCoolArmsUp_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiCow_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiDog_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiFlowers_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiFood_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiGiveLove_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiGlare_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHappy1_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHappy2_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHappyArmsUp_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHappyHand_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHeart_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHollars_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiHorrified_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiJoy_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiKnife_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiMusic1_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiMusic2_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiOhno_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiPassGlasses_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiPumpedUp_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiShrug_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiSleeping_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiSmitten_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiSneaky_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiStare_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiSunglasses_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiSweat_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiTM_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiThumbsUp_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiTinySmile_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiTwoHugs_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiWhoa_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiWink_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiWut_d.png",
+		"/Lotus/Interface/Graphics/Retro/Texts/Emoji/RetroEmojiYum_d.png",
+	];
+
+	function resolveEmojis(text)
+	{
+		return text.replaceAll(/<[^>]+>/g, (match) => {
+			const name = match.split("<").join("").split(">").join("");
+			const simpleName = name.toLowerCase().split("_").join("");
+			const emojiPath = retro_emoji_paths.find(emojiPath => emojiPath.toLowerCase().indexOf(simpleName) !== -1);
+			if (emojiPath)
+			{
+				return "<img alt='<" + name + ">' style='height:1em;position:relative;bottom:-3px' src='https://browse.wf" + emojiPath + "' />";
+			}
+			return "&lt;" + name + "&gt;";
+		});
+	}
+
+	function getNodeText(node)
+	{
+		let text = dicts[lang][node.name] ?? node.name;
+		if (node.vars)
+		{
+			for (const [k, v] of Object.entries(node.vars))
+			{
+				text = text.split("|"+k+"|").join(dicts[lang][v] ?? v);
+			}
+		}
+		return text;
+	}
+
+	function addToHistory(text)
+	{
+		const div = document.createElement("div");
+		{
+			const span = document.createElement("span");
+			span.innerHTML = resolveEmojis(text.trim() == "" ? "&#8203;" : text).split("\r\n").join("<br/>");
+			div.appendChild(span);
+		}
+		document.getElementById("history").appendChild(div);
+	}
+
+	function findPrevious( id )
+	{
+	    for( const node of nodes )
+	    {
+		if ( node.choices.includes( id ) )
+		{
+		    return node.id;
+		}
+		else if ( ( "true_choices" in node ) &&
+			  ( node.true_choices.includes( id ) ) )
+		{
+		    return node.id;
+		}
+		else if ( ( "false_choices" in node ) &&
+			  ( node.false_choices.includes( id ) ) )
+		{
+		    return node.id;
+		}
+	    }
+	    return -1;
+	}
+
+	function findNoDate()
+	{
+
+	    var no_date = Array();
+	    for (const node of nodes)
+	    {
+		if ( (node.type == "/EE/Types/Engine/SetBooleanDialogueNode") &&
+		     node.name.includes("NoDate") )
+		{
+		    no_date.push( node.id );
+		}
+	    }
+	    return no_date;
+	}
+
+	function findAllRefs( id )
+	{
+
+	    var refs = Array();
+	    for (const node of nodes)
+	    {
+		if ( node.choices.includes(id) )
+		{
+		    refs.push( node.id );
+		}
+	    }
+	    for ( i=0; i<refs.length; i++ )
+	    {
+		refs[i] = traceBack( refs[i] );
+	    }
+	    return refs;
+
+	}
+
+	function traceBack( id )
+	{
+
+	    var trace_back = Array();
+	    var cursor = nodes[id];
+	    trace_back.push(id);
+
+	    // trace back until a player choice with more than 1 option is reached
+	    while ( cursor.type != "/EE/Types/Engine/PlayerChoiceDialogueNode" ) 
+	    {
+		prev_id = findPrevious( cursor.id );
+		if ( prev_id >= 0 )
+		{
+		    trace_back.push(prev_id);
+		    cursor = nodes[prev_id];
+		}
+		else
+		{
+		    break;
+		}
+	    }
+	    // go back further until to last partner dialog
+	    while ( cursor.type != "/EE/Types/Engine/DialogueNode" ) 
+	    {
+		prev_id = findPrevious( cursor.id );
+		if ( prev_id >= 0 )
+		{
+		    trace_back.push(prev_id);
+		    cursor = nodes[prev_id];
+		}
+		else
+		{
+		    break;
+		}
+	    }
+
+	    return trace_back;
+
+	}
+
+	function speaker( node )
+	{
+
+	    if ( node.type == "/EE/Types/Engine/DialogueNode" )
+	    {
+		return real_name;
+	    }
+	    else if ( node.type == "/EE/Types/Engine/PlayerChoiceDialogueNode" ) 
+	    {
+		return "Drifter";
+	    }
+	    else
+	    {
+		return "Unknown";
+	    }
+
+	}
+
+	function mineSweeper()
+	{
+
+	    no_date = findNoDate();
+	    addToHistory( real_name + " has " + no_date.length.toString() + " land mines" );
+	    addToHistory("");
+	    for ( const item_id of no_date )
+	    {
+		refs = findAllRefs( item_id );
+		for ( const refs_id of refs )
+		{	
+		    for( j=refs_id.length-1; j>=0; j-- )
+		    {
+			if ( ( nodes[refs_id[j]].type == "/EE/Types/Engine/DialogueNode" ) ||
+			     ( nodes[refs_id[j]].type == "/EE/Types/Engine/PlayerChoiceDialogueNode" ) )
+			{
+			    addToHistory( speaker(nodes[refs_id[j]]) + ": " +
+					  getNodeText(nodes[refs_id[j]]) );
+			}
+
+		    }
+		    addToHistory( "" );
+		}
+	    }
+
+	}
+
+	function clearHistory()
+	{
+		document.getElementById("history").innerHTML = "";
+	}
+
+	function setActiveChatroom(chatroom)
+	{
+		if (window.chatroom != chatroom)
+		{
+			window.chatroom = chatroom;
+			window.sender_name = document.querySelector("option[value='"+chatroom+"']").textContent.split(" (")[0];
+
+			window.nodes = window.chatrooms[chatroom];
+			window.real_name = chatroom.replace("Dialogue_rom.dialogue","");
+      
+			window.dialogue_name_to_start_node_id = {};
+			for (const node of nodes)
+			{
+				if (node.type == "/EE/Types/Engine/StartDialogueNode")
+				{
+					dialogue_name_to_start_node_id[node.name] = node.id;
+				}
+			}
+			dialogue_name_to_start_node_id = Object.keys(dialogue_name_to_start_node_id).sort((a, b) => {
+				if (a.indexOf("Rank") !== -1 && b.indexOf("Rank") === -1)
+				{
+					return -1;
+				}
+				if (b.indexOf("Rank") !== -1 && a.indexOf("Rank") === -1)
+				{
+					return +1;
+				}
+				return a < b ? -1 : +1;
+			}).reduce((obj, key) => { 
+				obj[key] = dialogue_name_to_start_node_id[key]; 
+				return obj;
+			}, {});
+
+			clearHistory();
+		}
+	}
+
+	addToHistory("Loading data...");
+	Promise.all([
+		fetch("dicts/en.json").then(res => res.json()),
+		fetch("dicts/de.json").then(res => res.json()),
+		fetch("dicts/es.json").then(res => res.json()),
+		fetch("dicts/fr.json").then(res => res.json()),
+		fetch("dicts/it.json").then(res => res.json()),
+		fetch("dicts/ja.json").then(res => res.json()),
+		fetch("dicts/ko.json").then(res => res.json()),
+		fetch("dicts/pl.json").then(res => res.json()),
+		fetch("dicts/pt.json").then(res => res.json()),
+		fetch("dicts/ru.json").then(res => res.json()),
+		fetch("dicts/tc.json").then(res => res.json()),
+		fetch("dicts/th.json").then(res => res.json()),
+		fetch("dicts/tr.json").then(res => res.json()),
+		fetch("dicts/uk.json").then(res => res.json()),
+		fetch("dicts/zh.json").then(res => res.json()),
+		fetch("ArthurDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("EleanorDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("LettieDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("AmirDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("AoiDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("QuincyDialogue_rom.dialogue.json").then(res => res.json()),
+		fetch("HexDialogue_rom.dialogue.json").then(res => res.json())
+	]).then(([
+		dict_en, dict_de, dict_es, dict_fr, dict_it, dict_ja, dict_ko, dict_pl, dict_pt, dict_ru, dict_tc, dict_th, dict_tr, dict_uk, dict_zh,
+		ArthurDialogue_rom, EleanorDialogue_rom, LettieDialogue_rom, AmirDialogue_rom, AoiDialogue_rom, QuincyDialogue_rom, HexDialogue_rom
+	]) => {
+		window.dicts = {
+			en: dict_en,
+			de: dict_de,
+			es: dict_es,
+			fr: dict_fr,
+			it: dict_it,
+			ja: dict_ja,
+			ko: dict_ko,
+			pl: dict_pl,
+			pt: dict_pt,
+			ru: dict_ru,
+			tc: dict_tc,
+			th: dict_th,
+			tr: dict_tr,
+			uk: dict_uk,
+			zh: dict_zh,
+		};
+		window.chatrooms = {
+			"ArthurDialogue_rom.dialogue": ArthurDialogue_rom,
+			"EleanorDialogue_rom.dialogue": EleanorDialogue_rom,
+			"LettieDialogue_rom.dialogue": LettieDialogue_rom,
+			"AmirDialogue_rom.dialogue": AmirDialogue_rom,
+			"AoiDialogue_rom.dialogue": AoiDialogue_rom,
+			"QuincyDialogue_rom.dialogue": QuincyDialogue_rom,
+			"HexDialogue_rom.dialogue": HexDialogue_rom,
+		};
+
+		clearHistory();
+
+		document.getElementById("chatroom").onchange = function()
+		{
+			clearHistory();
+
+			window.chatroom = undefined;
+			if (this.value != "SELECT A CHATROOM")
+			{
+				setActiveChatroom(this.value);
+			}
+		    mineSweeper();
+		};
+		if (document.getElementById("chatroom").value != "SELECT A CHATROOM")
+		{
+			document.getElementById("chatroom").onchange();
+		}
+
+		// Got important data, so network is free to preload emojis now.
+		for (const path of retro_emoji_paths)
+		{
+			new Image().src = "https://browse.wf" + path;
+		}
+	});
+
+	document.getElementById("lang").onchange = function()
+	{
+		lang = this.value;
+	};
+
+</script>
+</html>
